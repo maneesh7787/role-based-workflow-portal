@@ -98,6 +98,49 @@ if (isset($_GET['action']) && isset($_GET['id'])) {
     }
 }
 
+// Handle password reset by admin
+if ($_SERVER['REQUEST_METHOD'] == 'POST' && isset($_POST['action']) && $_POST['action'] == 'reset_password') {
+    $user_id = intval($_POST['user_id']);
+    $new_password = $_POST['new_password'];
+    $confirm_password = $_POST['confirm_password'];
+    
+    if (empty($new_password) || empty($confirm_password)) {
+        $error = 'All password fields are required.';
+    } elseif ($new_password !== $confirm_password) {
+        $error = 'Passwords do not match.';
+    } elseif (strlen($new_password) < 8) {
+        $error = 'Password must be at least 8 characters long.';
+    } elseif (!preg_match('/[A-Z]/', $new_password)) {
+        $error = 'Password must contain at least one uppercase letter.';
+    } elseif (!preg_match('/[a-z]/', $new_password)) {
+        $error = 'Password must contain at least one lowercase letter.';
+    } elseif (!preg_match('/[0-9]/', $new_password)) {
+        $error = 'Password must contain at least one number.';
+    } else {
+        // Get username for logging
+        $stmt = $db->prepare("SELECT username FROM users WHERE id = ?");
+        $stmt->bind_param("i", $user_id);
+        $stmt->execute();
+        $result = $stmt->get_result();
+        $user = $result->fetch_assoc();
+        $username = $user['username'];
+        $stmt->close();
+        
+        // Update password
+        $hashed_password = password_hash($new_password, PASSWORD_DEFAULT);
+        $stmt = $db->prepare("UPDATE users SET password = ? WHERE id = ?");
+        $stmt->bind_param("si", $hashed_password, $user_id);
+        
+        if ($stmt->execute()) {
+            $success = "Password reset successfully for user: $username";
+            logActivity($_SESSION['user_id'], 'Password Reset by Admin', "Reset password for user ID: $user_id ($username)");
+        } else {
+            $error = 'Error resetting password.';
+        }
+        $stmt->close();
+    }
+}
+
 // Fetch all users
 $users = [];
 $result = $db->query("SELECT * FROM users ORDER BY created_at DESC");
@@ -174,6 +217,10 @@ require_once '../includes/header.php';
                                     data-bs-target="#editUserModal<?php echo $user['id']; ?>">
                                 <i class="fas fa-edit"></i> Edit
                             </button>
+                            <button type="button" class="btn btn-sm btn-secondary" data-bs-toggle="modal" 
+                                    data-bs-target="#resetPasswordModal<?php echo $user['id']; ?>">
+                                <i class="fas fa-key"></i> Reset Password
+                            </button>
                             <?php if ($user['is_active']): ?>
                             <a href="?action=deactivate&id=<?php echo $user['id']; ?>" 
                                class="btn btn-sm btn-warning" 
@@ -232,6 +279,48 @@ require_once '../includes/header.php';
                                     <div class="modal-footer">
                                         <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
                                         <button type="submit" class="btn btn-primary">Update User</button>
+                                    </div>
+                                </form>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <!-- Reset Password Modal -->
+                    <div class="modal fade" id="resetPasswordModal<?php echo $user['id']; ?>" tabindex="-1">
+                        <div class="modal-dialog">
+                            <div class="modal-content">
+                                <div class="modal-header">
+                                    <h5 class="modal-title">Reset Password for <?php echo htmlspecialchars($user['username']); ?></h5>
+                                    <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                                </div>
+                                <form method="POST" action="">
+                                    <div class="modal-body">
+                                        <input type="hidden" name="action" value="reset_password">
+                                        <input type="hidden" name="user_id" value="<?php echo $user['id']; ?>">
+                                        
+                                        <div class="alert alert-info">
+                                            <i class="fas fa-info-circle"></i> 
+                                            You are resetting the password for <strong><?php echo htmlspecialchars($user['full_name']); ?></strong>
+                                        </div>
+                                        
+                                        <div class="mb-3">
+                                            <label class="form-label">New Password <span class="text-danger">*</span></label>
+                                            <input type="password" class="form-control" name="new_password" required minlength="8">
+                                            <small class="text-muted">
+                                                Must be at least 8 characters with uppercase, lowercase, and numbers
+                                            </small>
+                                        </div>
+                                        
+                                        <div class="mb-3">
+                                            <label class="form-label">Confirm New Password <span class="text-danger">*</span></label>
+                                            <input type="password" class="form-control" name="confirm_password" required>
+                                        </div>
+                                    </div>
+                                    <div class="modal-footer">
+                                        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+                                        <button type="submit" class="btn btn-danger">
+                                            <i class="fas fa-key"></i> Reset Password
+                                        </button>
                                     </div>
                                 </form>
                             </div>

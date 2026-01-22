@@ -79,3 +79,17 @@ Admin users can create new accounts through:
 4. Fill in user details and assign role
 5. Set temporary password
 6. Instruct user to change password on first login
+
+## Password Reset (Admin Function)
+
+If a user forgets their password, an admin can reset it:
+1. Login as admin
+2. Navigate to Admin → Manage Users
+3. Find the user in the list
+4. Click "Reset Password" button
+5. Enter a new password (must meet security requirements)
+6. Confirm the new password
+7. Click "Reset Password" to apply
+8. Inform the user of their new password
+
+**Note:** The admin can reset passwords for any user account, including other admins.
