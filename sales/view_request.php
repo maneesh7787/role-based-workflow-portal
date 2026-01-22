@@ -31,19 +31,21 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST' && isset($_POST['action'])) {
         $success = 'Request approved successfully!';
         logActivity($user_id, 'Request Approved', "Request ID: $request_id", $request_id);
         
-        // Notify all involved parties
-        $notif_msg = "Request #$request_id has been approved";
-        $result = $db->query("SELECT DISTINCT user_id FROM 
-                             (SELECT created_by as user_id FROM requests WHERE id = $request_id
+        // Notify all involved parties using prepared statements
+        $stmt2 = $db->prepare("SELECT DISTINCT created_by as user_id FROM requests WHERE id = ?
                               UNION 
-                              SELECT uploaded_by as user_id FROM request_designs WHERE request_id = $request_id
+                              SELECT DISTINCT uploaded_by as user_id FROM request_designs WHERE request_id = ?
                               UNION
-                              SELECT approved_by as user_id FROM approvals WHERE request_id = $request_id) as users");
+                              SELECT DISTINCT approved_by as user_id FROM approvals WHERE request_id = ?");
+        $stmt2->bind_param("iii", $request_id, $request_id, $request_id);
+        $stmt2->execute();
+        $result = $stmt2->get_result();
         while ($row = $result->fetch_assoc()) {
             if ($row['user_id'] != $user_id) {
                 createNotification($row['user_id'], $request_id, 'Approved', $notif_msg);
             }
         }
+        $stmt2->close();
         $stmt->close();
         
     } elseif ($action == 'close') {

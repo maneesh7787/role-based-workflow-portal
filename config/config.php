@@ -86,7 +86,14 @@ function sendEmailNotification($to, $subject, $message) {
     return mail($to, $subject, $message, $headers);
 }
 
-// Error reporting (disable in production)
-error_reporting(E_ALL);
-ini_set('display_errors', 1);
+// Error reporting (set to 0 for production, E_ALL for development)
+// To enable debug mode, set the environment variable DEBUG_MODE=1
+$debug_mode = getenv('DEBUG_MODE') === '1';
+if ($debug_mode) {
+    error_reporting(E_ALL);
+    ini_set('display_errors', 1);
+} else {
+    error_reporting(0);
+    ini_set('display_errors', 0);
+}
 ?>

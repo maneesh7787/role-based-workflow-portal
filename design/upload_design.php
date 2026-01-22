@@ -49,8 +49,9 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST' && isset($_FILES['design_images'])) {
                 continue;
             }
             
-            // Generate unique filename
-            $new_file_name = 'design_' . $request_id . '_' . time() . '_' . $i . '.' . $file_ext;
+            // Generate unique filename with secure random component
+            $random_string = bin2hex(random_bytes(16));
+            $new_file_name = 'design_' . $request_id . '_' . $random_string . '.' . $file_ext;
             $destination = UPLOAD_DIR . $new_file_name;
             
             // Move uploaded file
