@@ -4,20 +4,21 @@
 USE workflow_portal;
 
 -- Create sample users for each role (passwords are all 'password123')
+-- Hash generated using: password_hash('password123', PASSWORD_DEFAULT)
 -- Sales Users
 INSERT INTO users (username, email, password, full_name, role, is_active) VALUES
-('john_sales', 'john@sales.com', '$2y$10$92IXUNpkjO0rOQ5byMi.Ye4oKoEa3Ro9llC/.og/at2.uheWG/igi', 'John Smith', 'Sales', 1),
-('sarah_sales', 'sarah@sales.com', '$2y$10$92IXUNpkjO0rOQ5byMi.Ye4oKoEa3Ro9llC/.og/at2.uheWG/igi', 'Sarah Johnson', 'Sales', 1);
+('john_sales', 'john@sales.com', '$2y$10$0Mspv23LTrn/h2nJOCTmv.g92.D4pf9RIdppEQJxC1dDJCav6XNI.', 'John Smith', 'Sales', 1),
+('sarah_sales', 'sarah@sales.com', '$2y$10$0Mspv23LTrn/h2nJOCTmv.g92.D4pf9RIdppEQJxC1dDJCav6XNI.', 'Sarah Johnson', 'Sales', 1);
 
 -- Design Users
 INSERT INTO users (username, email, password, full_name, role, is_active) VALUES
-('mike_design', 'mike@design.com', '$2y$10$92IXUNpkjO0rOQ5byMi.Ye4oKoEa3Ro9llC/.og/at2.uheWG/igi', 'Mike Wilson', 'Design', 1),
-('lisa_design', 'lisa@design.com', '$2y$10$92IXUNpkjO0rOQ5byMi.Ye4oKoEa3Ro9llC/.og/at2.uheWG/igi', 'Lisa Anderson', 'Design', 1);
+('mike_design', 'mike@design.com', '$2y$10$0Mspv23LTrn/h2nJOCTmv.g92.D4pf9RIdppEQJxC1dDJCav6XNI.', 'Mike Wilson', 'Design', 1),
+('lisa_design', 'lisa@design.com', '$2y$10$0Mspv23LTrn/h2nJOCTmv.g92.D4pf9RIdppEQJxC1dDJCav6XNI.', 'Lisa Anderson', 'Design', 1);
 
 -- Approval Users
 INSERT INTO users (username, email, password, full_name, role, is_active) VALUES
-('david_approval', 'david@approval.com', '$2y$10$92IXUNpkjO0rOQ5byMi.Ye4oKoEa3Ro9llC/.og/at2.uheWG/igi', 'David Brown', 'Approval', 1),
-('emily_approval', 'emily@approval.com', '$2y$10$92IXUNpkjO0rOQ5byMi.Ye4oKoEa3Ro9llC/.og/at2.uheWG/igi', 'Emily Davis', 'Approval', 1);
+('david_approval', 'david@approval.com', '$2y$10$0Mspv23LTrn/h2nJOCTmv.g92.D4pf9RIdppEQJxC1dDJCav6XNI.', 'David Brown', 'Approval', 1),
+('emily_approval', 'emily@approval.com', '$2y$10$0Mspv23LTrn/h2nJOCTmv.g92.D4pf9RIdppEQJxC1dDJCav6XNI.', 'Emily Davis', 'Approval', 1);
 
 -- Sample requests from sales users
 INSERT INTO requests (event_name, location, event_date, event_time, description, status, created_by) VALUES

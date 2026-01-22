@@ -90,5 +90,6 @@ CREATE INDEX idx_notifications_is_read ON notifications(is_read);
 CREATE INDEX idx_activity_logs_user_id ON activity_logs(user_id);
 
 -- Insert default admin user (password: admin123)
+-- Hash generated using: password_hash('admin123', PASSWORD_DEFAULT)
 INSERT INTO users (username, email, password, full_name, role, is_active) 
-VALUES ('admin', 'admin@workflowportal.com', '$2y$10$92IXUNpkjO0rOQ5byMi.Ye4oKoEa3Ro9llC/.og/at2.uheWG/igi', 'System Admin', 'Admin', 1);
+VALUES ('admin', 'admin@workflowportal.com', '$2y$10$HAT1AWw2du48OPdOrH9J1OoAqhAs/AElZBYZ7cxp2hq43svUuoz0m', 'System Admin', 'Admin', 1);
