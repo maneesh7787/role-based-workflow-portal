@@ -48,15 +48,7 @@ $(document).ready(function() {
         });
     }
     
-    // Mark notification as read when clicked
-    $('.notification-dropdown .dropdown-item').on('click', function() {
-        const notifId = $(this).attr('href').split('id=')[1];
-        if (notifId) {
-            $.post('<?php echo BASE_URL; ?>/api/mark_notification_read.php', {
-                id: notifId
-            });
-        }
-    });
+    // Notification click handling is done server-side in notifications.php
     
     // Form validation
     $('form').on('submit', function(e) {
