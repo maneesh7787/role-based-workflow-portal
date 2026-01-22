@@ -82,15 +82,27 @@ require_once 'includes/header.php';
                         <?php endif; ?>
                         Request #<?php echo $notif['request_id']; ?>
                         <span class="badge bg-<?php 
-                            echo match($notif['type']) {
-                                'New Request' => 'warning',
-                                'Design Uploaded' => 'info',
-                                'Approval Completed' => 'success',
-                                'Returned for Changes' => 'danger',
-                                'Approved' => 'success',
-                                'Closed' => 'secondary',
-                                default => 'primary'
-                            };
+                            // Badge color based on notification type (PHP 7.x compatible)
+                            $badge_color = 'primary';
+                            switch($notif['type']) {
+                                case 'New Request':
+                                    $badge_color = 'warning';
+                                    break;
+                                case 'Design Uploaded':
+                                    $badge_color = 'info';
+                                    break;
+                                case 'Approval Completed':
+                                case 'Approved':
+                                    $badge_color = 'success';
+                                    break;
+                                case 'Returned for Changes':
+                                    $badge_color = 'danger';
+                                    break;
+                                case 'Closed':
+                                    $badge_color = 'secondary';
+                                    break;
+                            }
+                            echo $badge_color;
                         ?>">
                             <?php echo $notif['type']; ?>
                         </span>
