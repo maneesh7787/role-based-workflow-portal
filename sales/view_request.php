@@ -115,6 +115,17 @@ if ($result->num_rows > 0) {
 }
 $stmt->close();
 
+// Fetch attachments
+$attachments = [];
+$stmt = $db->prepare("SELECT * FROM request_attachments WHERE request_id = ? ORDER BY uploaded_at DESC");
+$stmt->bind_param("i", $request_id);
+$stmt->execute();
+$result = $stmt->get_result();
+while ($row = $result->fetch_assoc()) {
+    $attachments[] = $row;
+}
+$stmt->close();
+
 require_once '../includes/header.php';
 ?>
 
@@ -123,6 +134,9 @@ require_once '../includes/header.php';
         <h2><i class="fas fa-clipboard"></i> Request Details #<?php echo $request['id']; ?></h2>
     </div>
     <div class="col-md-4 text-end">
+        <a href="edit_request.php?id=<?php echo $request['id']; ?>" class="btn btn-info">
+            <i class="fas fa-edit"></i> Edit Request
+        </a>
         <a href="my_requests.php" class="btn btn-secondary">
             <i class="fas fa-arrow-left"></i> Back to My Requests
         </a>
@@ -174,6 +188,51 @@ require_once '../includes/header.php';
         </div>
     </div>
 </div>
+
+<!-- Sales Attachments -->
+<?php if (count($attachments) > 0): ?>
+<div class="card mb-4">
+    <div class="card-header bg-primary text-white">
+        <h5 class="mb-0"><i class="fas fa-paperclip"></i> Request Attachments (<?php echo count($attachments); ?>)</h5>
+    </div>
+    <div class="card-body">
+        <div class="table-responsive">
+            <table class="table table-hover">
+                <thead>
+                    <tr>
+                        <th>File Name</th>
+                        <th>Type</th>
+                        <th>Uploaded</th>
+                        <th>Actions</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <?php foreach ($attachments as $attachment): ?>
+                    <tr>
+                        <td>
+                            <i class="fas fa-<?php echo $attachment['file_type'] == 'pdf' ? 'file-pdf' : 'image'; ?>"></i>
+                            <?php echo htmlspecialchars($attachment['file_name']); ?>
+                        </td>
+                        <td>
+                            <span class="badge bg-secondary"><?php echo strtoupper($attachment['file_type']); ?></span>
+                        </td>
+                        <td><?php echo date('M d, Y H:i', strtotime($attachment['uploaded_at'])); ?></td>
+                        <td>
+                            <a href="../<?php echo $attachment['file_path']; ?>" target="_blank" class="btn btn-sm btn-info">
+                                <i class="fas fa-eye"></i> View
+                            </a>
+                            <a href="../<?php echo $attachment['file_path']; ?>" download class="btn btn-sm btn-success">
+                                <i class="fas fa-download"></i> Download
+                            </a>
+                        </td>
+                    </tr>
+                    <?php endforeach; ?>
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>
+<?php endif; ?>
 
 <!-- Design Images -->
 <?php if (count($designs) > 0): ?>

@@ -136,6 +136,17 @@ while ($row = $result->fetch_assoc()) {
 }
 $stmt->close();
 
+// Fetch sales attachments
+$attachments = [];
+$stmt = $db->prepare("SELECT * FROM request_attachments WHERE request_id = ? ORDER BY uploaded_at DESC");
+$stmt->bind_param("i", $request_id);
+$stmt->execute();
+$result = $stmt->get_result();
+while ($row = $result->fetch_assoc()) {
+    $attachments[] = $row;
+}
+$stmt->close();
+
 require_once '../includes/header.php';
 ?>
 
@@ -195,6 +206,46 @@ require_once '../includes/header.php';
         </div>
     </div>
 </div>
+
+<!-- Sales Attachments -->
+<?php if (count($attachments) > 0): ?>
+<div class="card mb-4">
+    <div class="card-header bg-primary text-white">
+        <h5 class="mb-0"><i class="fas fa-paperclip"></i> Sales Attachments (<?php echo count($attachments); ?>)</h5>
+    </div>
+    <div class="card-body">
+        <div class="table-responsive">
+            <table class="table table-sm">
+                <thead>
+                    <tr>
+                        <th>File Name</th>
+                        <th>Type</th>
+                        <th>Actions</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <?php foreach ($attachments as $attachment): ?>
+                    <tr>
+                        <td>
+                            <i class="fas fa-<?php echo $attachment['file_type'] == 'pdf' ? 'file-pdf' : 'image'; ?>"></i>
+                            <?php echo htmlspecialchars($attachment['file_name']); ?>
+                        </td>
+                        <td>
+                            <span class="badge bg-secondary"><?php echo strtoupper($attachment['file_type']); ?></span>
+                        </td>
+                        <td>
+                            <a href="../<?php echo $attachment['file_path']; ?>" target="_blank" class="btn btn-sm btn-info">
+                                <i class="fas fa-eye"></i> View
+                            </a>
+                        </td>
+                    </tr>
+                    <?php endforeach; ?>
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>
+<?php endif; ?>
 
 <!-- Existing Designs -->
 <?php if (count($designs) > 0): ?>

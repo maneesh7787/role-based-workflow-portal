@@ -33,10 +33,63 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
         
         if ($stmt->execute()) {
             $request_id = $stmt->insert_id;
-            $success = 'Request created successfully!';
+            $stmt->close();
+            
+            // Handle file uploads if any
+            $uploaded_count = 0;
+            if (isset($_FILES['attachments']) && !empty($_FILES['attachments']['name'][0])) {
+                $files = $_FILES['attachments'];
+                
+                // Check if upload directory exists
+                if (!is_dir(UPLOAD_DIR)) {
+                    mkdir(UPLOAD_DIR, 0755, true);
+                }
+                
+                // Process each uploaded file
+                for ($i = 0; $i < count($files['name']); $i++) {
+                    if ($files['error'][$i] === UPLOAD_ERR_OK) {
+                        $file_name = $files['name'][$i];
+                        $file_tmp = $files['tmp_name'][$i];
+                        $file_size = $files['size'][$i];
+                        $file_ext = strtolower(pathinfo($file_name, PATHINFO_EXTENSION));
+                        
+                        // Validate file - allow images and PDFs
+                        $allowed_exts = array_merge(ALLOWED_EXTENSIONS, ['pdf']);
+                        if (!in_array($file_ext, $allowed_exts)) {
+                            $error = "Invalid file type for $file_name. Only JPG, JPEG, PNG, GIF, and PDF are allowed.";
+                            continue;
+                        }
+                        
+                        if ($file_size > MAX_FILE_SIZE) {
+                            $error = "File $file_name is too large. Maximum size is 5MB.";
+                            continue;
+                        }
+                        
+                        // Generate unique filename
+                        $random_string = bin2hex(random_bytes(16));
+                        $new_file_name = 'attachment_' . $request_id . '_' . $random_string . '.' . $file_ext;
+                        $destination = UPLOAD_DIR . $new_file_name;
+                        
+                        // Move uploaded file
+                        if (move_uploaded_file($file_tmp, $destination)) {
+                            $file_path = 'uploads/' . $new_file_name;
+                            
+                            // Save to database
+                            $stmt2 = $db->prepare("INSERT INTO request_attachments (request_id, file_path, file_name, file_type, uploaded_by) VALUES (?, ?, ?, ?, ?)");
+                            $stmt2->bind_param("isssi", $request_id, $file_path, $file_name, $file_ext, $user_id);
+                            $stmt2->execute();
+                            $stmt2->close();
+                            
+                            $uploaded_count++;
+                        }
+                    }
+                }
+            }
+            
+            $success = 'Request created successfully!' . ($uploaded_count > 0 ? " $uploaded_count file(s) uploaded." : '');
             
             // Log activity
-            logActivity($user_id, 'Request Created', "Created request: $event_name", $request_id);
+            logActivity($user_id, 'Request Created', "Created request: $event_name" . ($uploaded_count > 0 ? " with $uploaded_count attachment(s)" : ''), $request_id);
             
             // Notify Design team
             $design_users = $db->query("SELECT id, email FROM users WHERE role = 'Design' AND is_active = 1");
@@ -59,8 +112,8 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
             exit();
         } else {
             $error = 'Error creating request. Please try again.';
+            $stmt->close();
         }
-        $stmt->close();
     }
 }
 
@@ -94,7 +147,7 @@ require_once '../includes/header.php';
 
 <div class="card">
     <div class="card-body">
-        <form method="POST" action="">
+        <form method="POST" action="" enctype="multipart/form-data">
             <div class="row">
                 <div class="col-md-6">
                     <div class="mb-3">
@@ -133,6 +186,16 @@ require_once '../includes/header.php';
                 <label for="description" class="form-label">Description</label>
                 <textarea class="form-control" id="description" name="description" rows="4" 
                           placeholder="Enter event description and requirements"></textarea>
+            </div>
+            
+            <div class="mb-3">
+                <label for="attachments" class="form-label">
+                    Attachments (Optional)
+                    <small class="text-muted">- Images (JPG, PNG, GIF) or PDF files, max 5MB each</small>
+                </label>
+                <input type="file" class="form-control" id="attachments" name="attachments[]" 
+                       multiple accept=".jpg,.jpeg,.png,.gif,.pdf">
+                <small class="text-muted">You can select multiple files</small>
             </div>
             
             <div class="text-end">
