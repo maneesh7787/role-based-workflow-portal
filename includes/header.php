@@ -58,6 +58,11 @@
                             <i class="fas fa-palette"></i> Pending Designs
                         </a>
                     </li>
+                    <li class="nav-item">
+                        <a class="nav-link" href="<?php echo BASE_URL; ?>/design/completed_designs.php">
+                            <i class="fas fa-check-circle"></i> Completed Designs
+                        </a>
+                    </li>
                     <?php endif; ?>
                     
                     <?php if (hasRole('Approval')): ?>

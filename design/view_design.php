@@ -1,20 +1,20 @@
 <?php
 /**
- * Admin - View Request Details
+ * Design - View Completed Design
  */
 require_once '../config/config.php';
 
-// Check if user is logged in and is admin
-if (!isLoggedIn() || !hasRole('Admin')) {
+// Check if user is logged in and is in Design role
+if (!isLoggedIn() || !hasRole('Design')) {
     redirect('../login.php');
 }
 
 $request_id = intval($_GET['id'] ?? 0);
 if (!$request_id) {
-    redirect('requests.php');
+    redirect('completed_designs.php');
 }
 
-$page_title = 'Request Details';
+$page_title = 'View Design';
 $db = getDB();
 
 // Fetch request details
@@ -29,7 +29,7 @@ $request = $result->fetch_assoc();
 $stmt->close();
 
 if (!$request) {
-    redirect('requests.php');
+    redirect('completed_designs.php');
 }
 
 // Fetch sales attachments
@@ -52,7 +52,8 @@ $designs = [];
 $stmt = $db->prepare("SELECT rd.*, u.full_name as uploaded_by_name 
                       FROM request_designs rd 
                       JOIN users u ON rd.uploaded_by = u.id 
-                      WHERE rd.request_id = ?");
+                      WHERE rd.request_id = ? 
+                      ORDER BY rd.uploaded_at ASC");
 $stmt->bind_param("i", $request_id);
 $stmt->execute();
 $result = $stmt->get_result();
@@ -61,7 +62,7 @@ while ($row = $result->fetch_assoc()) {
 }
 $stmt->close();
 
-// Fetch approval info
+// Fetch approval info if exists
 $approval = null;
 $stmt = $db->prepare("SELECT a.*, u.full_name as approved_by_name 
                       FROM approvals a 
@@ -81,11 +82,11 @@ require_once '../includes/header.php';
 
 <div class="row mb-4">
     <div class="col-md-8">
-        <h2><i class="fas fa-clipboard"></i> Request Details #<?php echo $request['id']; ?></h2>
+        <h2><i class="fas fa-eye"></i> Design Details #<?php echo $request['id']; ?></h2>
     </div>
     <div class="col-md-4 text-end">
-        <a href="requests.php" class="btn btn-secondary">
-            <i class="fas fa-arrow-left"></i> Back to Requests
+        <a href="completed_designs.php" class="btn btn-secondary">
+            <i class="fas fa-arrow-left"></i> Back to Completed Designs
         </a>
     </div>
 </div>
@@ -146,8 +147,7 @@ require_once '../includes/header.php';
                         <?php endif; ?>
                         <p class="small mb-1"><strong><?php echo htmlspecialchars($attachment['file_name']); ?></strong></p>
                         <p class="small text-muted mb-2">
-                            Uploaded by <?php echo htmlspecialchars($attachment['uploaded_by_name']); ?><br>
-                            on <?php echo date('M d, Y', strtotime($attachment['uploaded_at'])); ?>
+                            Uploaded <?php echo date('M d, Y', strtotime($attachment['uploaded_at'])); ?>
                         </p>
                         <a href="../<?php echo htmlspecialchars($attachment['file_path']); ?>" 
                            class="btn btn-sm btn-primary" download>
@@ -166,7 +166,7 @@ require_once '../includes/header.php';
 <?php if (count($designs) > 0): ?>
 <div class="card mb-4">
     <div class="card-header bg-info text-white">
-        <h5 class="mb-0"><i class="fas fa-images"></i> Design Images</h5>
+        <h5 class="mb-0"><i class="fas fa-images"></i> Design Images (<?php echo count($designs); ?>)</h5>
     </div>
     <div class="card-body">
         <div class="image-gallery">
