@@ -102,7 +102,7 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST' && isset($_POST['action'])) {
                         
                         $stmt = $db->prepare("INSERT INTO request_attachments (request_id, file_path, file_name, file_type, uploaded_by, is_client_update, client_update_remarks) 
                                              VALUES (?, ?, ?, ?, ?, 1, ?)");
-                        $stmt->bind_param("issis", $request_id, $db_file_path, $filename, $file_type_db, $user_id, $remarks);
+                        $stmt->bind_param("isssis", $request_id, $db_file_path, $filename, $file_type_db, $user_id, $remarks);
                         $stmt->execute();
                         $stmt->close();
                         
