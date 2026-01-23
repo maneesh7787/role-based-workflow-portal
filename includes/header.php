@@ -71,6 +71,11 @@
                             <i class="fas fa-check-circle"></i> Pending Approvals
                         </a>
                     </li>
+                    <li class="nav-item">
+                        <a class="nav-link" href="<?php echo BASE_URL; ?>/approval/completed_approvals.php">
+                            <i class="fas fa-check-double"></i> Completed Approvals
+                        </a>
+                    </li>
                     <?php endif; ?>
                 </ul>
                 
