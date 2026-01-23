@@ -136,14 +136,23 @@ while ($row = $result->fetch_assoc()) {
 }
 $stmt->close();
 
-// Fetch sales attachments
+// Fetch sales attachments - separate regular and client updates
 $attachments = [];
-$stmt = $db->prepare("SELECT * FROM request_attachments WHERE request_id = ? ORDER BY uploaded_at DESC");
+$client_updates = [];
+$stmt = $db->prepare("SELECT ra.*, u.full_name as uploaded_by_name 
+                      FROM request_attachments ra 
+                      JOIN users u ON ra.uploaded_by = u.id 
+                      WHERE ra.request_id = ? 
+                      ORDER BY ra.is_client_update ASC, ra.uploaded_at DESC");
 $stmt->bind_param("i", $request_id);
 $stmt->execute();
 $result = $stmt->get_result();
 while ($row = $result->fetch_assoc()) {
-    $attachments[] = $row;
+    if ($row['is_client_update']) {
+        $client_updates[] = $row;
+    } else {
+        $attachments[] = $row;
+    }
 }
 $stmt->close();
 
@@ -207,11 +216,88 @@ require_once '../includes/header.php';
     </div>
 </div>
 
+<!-- Client Updates from Sales -->
+<?php if (count($client_updates) > 0): ?>
+<div class="card mb-4 border-warning">
+    <div class="card-header bg-warning text-dark">
+        <h5 class="mb-0"><i class="fas fa-exclamation-triangle"></i> New Updates from Client (<?php echo count($client_updates); ?>)</h5>
+        <small>These files were added when the request was returned with new client requirements</small>
+    </div>
+    <div class="card-body">
+        <?php 
+        // Group by remarks to show updates together
+        $updates_by_remarks = [];
+        foreach ($client_updates as $update) {
+            $key = $update['client_update_remarks'] ?: 'No remarks';
+            if (!isset($updates_by_remarks[$key])) {
+                $updates_by_remarks[$key] = [
+                    'remarks' => $update['client_update_remarks'],
+                    'uploaded_at' => $update['uploaded_at'],
+                    'uploaded_by_name' => $update['uploaded_by_name'],
+                    'files' => []
+                ];
+            }
+            $updates_by_remarks[$key]['files'][] = $update;
+        }
+        
+        foreach ($updates_by_remarks as $update_group): ?>
+        <div class="alert alert-warning mb-3">
+            <div class="mb-2">
+                <strong><i class="fas fa-user"></i> <?php echo htmlspecialchars($update_group['uploaded_by_name']); ?></strong>
+                <small class="text-muted">- <?php echo date('M d, Y H:i', strtotime($update_group['uploaded_at'])); ?></small>
+            </div>
+            <?php if ($update_group['remarks']): ?>
+            <div class="mb-2">
+                <strong>Client Requirements:</strong><br>
+                <?php echo nl2br(htmlspecialchars($update_group['remarks'])); ?>
+            </div>
+            <?php endif; ?>
+            <div class="mt-2">
+                <strong>Attached Files:</strong>
+                <div class="table-responsive mt-2">
+                    <table class="table table-sm table-bordered">
+                        <thead>
+                            <tr>
+                                <th>File Name</th>
+                                <th>Type</th>
+                                <th>Actions</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <?php foreach ($update_group['files'] as $file): ?>
+                            <tr>
+                                <td>
+                                    <i class="fas fa-<?php echo $file['file_type'] == 'pdf' ? 'file-pdf text-danger' : 'image text-primary'; ?>"></i>
+                                    <?php echo htmlspecialchars($file['file_name']); ?>
+                                </td>
+                                <td>
+                                    <span class="badge bg-dark"><?php echo strtoupper($file['file_type']); ?></span>
+                                </td>
+                                <td>
+                                    <a href="../<?php echo $file['file_path']; ?>" target="_blank" class="btn btn-sm btn-info">
+                                        <i class="fas fa-eye"></i> View
+                                    </a>
+                                    <a href="../<?php echo $file['file_path']; ?>" download class="btn btn-sm btn-success">
+                                        <i class="fas fa-download"></i> Download
+                                    </a>
+                                </td>
+                            </tr>
+                            <?php endforeach; ?>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+        <?php endforeach; ?>
+    </div>
+</div>
+<?php endif; ?>
+
 <!-- Sales Attachments -->
 <?php if (count($attachments) > 0): ?>
 <div class="card mb-4">
     <div class="card-header bg-primary text-white">
-        <h5 class="mb-0"><i class="fas fa-paperclip"></i> Sales Attachments (<?php echo count($attachments); ?>)</h5>
+        <h5 class="mb-0"><i class="fas fa-paperclip"></i> Original Sales Attachments (<?php echo count($attachments); ?>)</h5>
     </div>
     <div class="card-body">
         <div class="table-responsive">
@@ -220,6 +306,8 @@ require_once '../includes/header.php';
                     <tr>
                         <th>File Name</th>
                         <th>Type</th>
+                        <th>Uploaded By</th>
+                        <th>Uploaded At</th>
                         <th>Actions</th>
                     </tr>
                 </thead>
@@ -233,6 +321,8 @@ require_once '../includes/header.php';
                         <td>
                             <span class="badge bg-secondary"><?php echo strtoupper($attachment['file_type']); ?></span>
                         </td>
+                        <td><?php echo htmlspecialchars($attachment['uploaded_by_name']); ?></td>
+                        <td><?php echo date('M d, Y H:i', strtotime($attachment['uploaded_at'])); ?></td>
                         <td>
                             <a href="../<?php echo $attachment['file_path']; ?>" target="_blank" class="btn btn-sm btn-info">
                                 <i class="fas fa-eye"></i> View

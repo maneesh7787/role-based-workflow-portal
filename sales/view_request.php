@@ -58,19 +58,88 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST' && isset($_POST['action'])) {
         
     } elseif ($action == 'return_to_design') {
         $remarks = sanitize($_POST['remarks']);
+        
+        // Handle file uploads for client updates
+        $upload_errors = [];
+        $uploaded_files = [];
+        
+        if (isset($_FILES['client_update_files']) && !empty($_FILES['client_update_files']['name'][0])) {
+            $upload_dir = '../uploads/';
+            if (!is_dir($upload_dir)) {
+                mkdir($upload_dir, 0755, true);
+            }
+            
+            $allowed_types = ['image/jpeg', 'image/png', 'image/gif', 'application/pdf'];
+            $max_size = 5 * 1024 * 1024; // 5MB
+            
+            foreach ($_FILES['client_update_files']['name'] as $key => $filename) {
+                if ($_FILES['client_update_files']['error'][$key] == 0) {
+                    $file_tmp = $_FILES['client_update_files']['tmp_name'][$key];
+                    $file_type = $_FILES['client_update_files']['type'][$key];
+                    $file_size = $_FILES['client_update_files']['size'][$key];
+                    
+                    // Validate file type
+                    if (!in_array($file_type, $allowed_types)) {
+                        $upload_errors[] = "Invalid file type for: $filename";
+                        continue;
+                    }
+                    
+                    // Validate file size
+                    if ($file_size > $max_size) {
+                        $upload_errors[] = "File too large: $filename (max 5MB)";
+                        continue;
+                    }
+                    
+                    // Generate secure random filename
+                    $extension = pathinfo($filename, PATHINFO_EXTENSION);
+                    $secure_filename = bin2hex(random_bytes(16)) . '.' . $extension;
+                    $file_path = $upload_dir . $secure_filename;
+                    
+                    if (move_uploaded_file($file_tmp, $file_path)) {
+                        // Save to database as client update
+                        $db_file_path = 'uploads/' . $secure_filename;
+                        $file_type_db = (strtolower($extension) == 'pdf') ? 'pdf' : 'image';
+                        
+                        $stmt = $db->prepare("INSERT INTO request_attachments (request_id, file_path, file_name, file_type, uploaded_by, is_client_update, client_update_remarks) 
+                                             VALUES (?, ?, ?, ?, ?, 1, ?)");
+                        $stmt->bind_param("issis", $request_id, $db_file_path, $filename, $file_type_db, $user_id, $remarks);
+                        $stmt->execute();
+                        $stmt->close();
+                        
+                        $uploaded_files[] = $filename;
+                    }
+                }
+            }
+        }
+        
         $stmt = $db->prepare("UPDATE requests SET status = 'Returned to Design' WHERE id = ?");
         $stmt->bind_param("i", $request_id);
         $stmt->execute();
-        $success = 'Request returned to design team!';
-        logActivity($user_id, 'Request Returned to Design', "Remarks: $remarks", $request_id);
+        
+        $files_msg = count($uploaded_files) > 0 ? " with " . count($uploaded_files) . " client update file(s)" : "";
+        $success = 'Request returned to design team' . $files_msg . '!';
+        
+        $log_details = "Remarks: $remarks";
+        if (count($uploaded_files) > 0) {
+            $log_details .= " | Files: " . implode(', ', $uploaded_files);
+        }
+        logActivity($user_id, 'Request Returned to Design', $log_details, $request_id);
         
         // Notify Design team
+        $notif_message = "Request #$request_id returned for changes. Remarks: $remarks";
+        if (count($uploaded_files) > 0) {
+            $notif_message .= " | New client update files attached (" . count($uploaded_files) . ")";
+        }
+        
         $design_users = $db->query("SELECT id FROM users WHERE role = 'Design' AND is_active = 1");
         while ($design_user = $design_users->fetch_assoc()) {
-            createNotification($design_user['id'], $request_id, 'Returned for Changes', 
-                "Request #$request_id returned for changes. Remarks: $remarks");
+            createNotification($design_user['id'], $request_id, 'Returned for Changes', $notif_message);
         }
         $stmt->close();
+        
+        if (count($upload_errors) > 0) {
+            $error = implode('<br>', $upload_errors);
+        }
     }
 }
 
@@ -308,19 +377,33 @@ require_once '../includes/header.php';
 
 <!-- Return to Design Modal -->
 <div class="modal fade" id="returnModal" tabindex="-1">
-    <div class="modal-dialog">
+    <div class="modal-dialog modal-lg">
         <div class="modal-content">
             <div class="modal-header">
                 <h5 class="modal-title">Return to Design Team</h5>
                 <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
             </div>
-            <form method="POST" action="">
+            <form method="POST" action="" enctype="multipart/form-data">
                 <div class="modal-body">
                     <input type="hidden" name="action" value="return_to_design">
                     <div class="mb-3">
-                        <label class="form-label">Remarks <span class="text-danger">*</span></label>
+                        <label class="form-label">Remarks / Client Updates <span class="text-danger">*</span></label>
                         <textarea class="form-control" name="remarks" rows="4" 
-                                  placeholder="Enter reasons for returning to design team" required></textarea>
+                                  placeholder="Enter reasons for returning to design team or new client requirements" required></textarea>
+                        <small class="text-muted">Explain what changes are needed or provide new client requirements</small>
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label">Attach Client Update Files (Optional)</label>
+                        <input type="file" class="form-control" name="client_update_files[]" 
+                               accept=".jpg,.jpeg,.png,.gif,.pdf" multiple>
+                        <small class="text-muted">
+                            Upload new client requirements, reference images, or documents (JPG, PNG, GIF, PDF - max 5MB each).
+                            These will be tagged as "New Updates from Client" and shown to the design team.
+                        </small>
+                    </div>
+                    <div class="alert alert-info">
+                        <i class="fas fa-info-circle"></i> 
+                        <strong>Note:</strong> Uploaded files will be marked as client updates and displayed separately to help the design team identify new requirements.
                     </div>
                 </div>
                 <div class="modal-footer">

@@ -52,6 +52,8 @@ CREATE TABLE IF NOT EXISTS request_attachments (
     file_name VARCHAR(255) NOT NULL,
     file_type VARCHAR(50) NOT NULL,
     uploaded_by INT NOT NULL,
+    is_client_update TINYINT(1) DEFAULT 0,
+    client_update_remarks TEXT,
     uploaded_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
     FOREIGN KEY (request_id) REFERENCES requests(id) ON DELETE CASCADE,
     FOREIGN KEY (uploaded_by) REFERENCES users(id) ON DELETE CASCADE
