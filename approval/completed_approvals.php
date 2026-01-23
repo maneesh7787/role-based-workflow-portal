@@ -28,16 +28,18 @@ $types = '';
 
 if ($search !== '') {
     $where_conditions[] = "(r.event_name LIKE ? OR r.location LIKE ? OR u.full_name LIKE ?)";
-    $search_param = "%$search%";
-    $params[] = &$search_param;
-    $params[] = &$search_param;
-    $params[] = &$search_param;
+    $search_param1 = "%$search%";
+    $search_param2 = "%$search%";
+    $search_param3 = "%$search%";
+    $params[] = $search_param1;
+    $params[] = $search_param2;
+    $params[] = $search_param3;
     $types .= 'sss';
 }
 
 if ($status_filter !== '') {
     $where_conditions[] = "r.status = ?";
-    $params[] = &$status_filter;
+    $params[] = $status_filter;
     $types .= 's';
 }
 
@@ -78,8 +80,8 @@ $query = "SELECT r.*, u.full_name as created_by_name,
 $requests = [];
 if (!empty($params)) {
     $stmt = $db->prepare($query);
-    $params[] = &$records_per_page;
-    $params[] = &$offset;
+    $params[] = $records_per_page;
+    $params[] = $offset;
     $types .= 'ii';
     $stmt->bind_param($types, ...$params);
     $stmt->execute();
