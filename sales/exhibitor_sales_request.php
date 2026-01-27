@@ -27,20 +27,20 @@ $formData = [
 // Server-side validation and processing
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     // Sanitize and validate inputs
-    $formData['requirement_type'] = filter_input(INPUT_POST, 'requirement_type', FILTER_SANITIZE_FULL_SPECIAL_CHARS);
-    $formData['client_name'] = filter_input(INPUT_POST, 'client_name', FILTER_SANITIZE_FULL_SPECIAL_CHARS);
+    $formData['requirement_type'] = filter_input(INPUT_POST, 'requirement_type', FILTER_SANITIZE_SPECIAL_CHARS);
+    $formData['client_name'] = filter_input(INPUT_POST, 'client_name', FILTER_SANITIZE_SPECIAL_CHARS);
     $formData['client_email'] = filter_input(INPUT_POST, 'client_email', FILTER_SANITIZE_EMAIL);
-    $formData['client_phone'] = filter_input(INPUT_POST, 'client_phone', FILTER_SANITIZE_FULL_SPECIAL_CHARS);
-    $formData['event_name'] = filter_input(INPUT_POST, 'event_name', FILTER_SANITIZE_FULL_SPECIAL_CHARS);
-    $formData['event_date'] = filter_input(INPUT_POST, 'event_date', FILTER_SANITIZE_FULL_SPECIAL_CHARS);
-    $formData['event_location'] = filter_input(INPUT_POST, 'event_location', FILTER_SANITIZE_FULL_SPECIAL_CHARS);
-    $formData['booth_size'] = filter_input(INPUT_POST, 'booth_size', FILTER_SANITIZE_FULL_SPECIAL_CHARS);
-    $formData['booth_number'] = filter_input(INPUT_POST, 'booth_number', FILTER_SANITIZE_FULL_SPECIAL_CHARS);
-    $formData['booth_type'] = filter_input(INPUT_POST, 'booth_type', FILTER_SANITIZE_FULL_SPECIAL_CHARS);
-    $formData['design_requirements'] = filter_input(INPUT_POST, 'design_requirements', FILTER_SANITIZE_FULL_SPECIAL_CHARS, FILTER_REQUIRE_ARRAY) ?? [];
-    $formData['delivery_priority'] = filter_input(INPUT_POST, 'delivery_priority', FILTER_SANITIZE_FULL_SPECIAL_CHARS);
-    $formData['special_requests'] = filter_input(INPUT_POST, 'special_requests', FILTER_SANITIZE_FULL_SPECIAL_CHARS);
-    $formData['budget_range'] = filter_input(INPUT_POST, 'budget_range', FILTER_SANITIZE_FULL_SPECIAL_CHARS);
+    $formData['client_phone'] = filter_input(INPUT_POST, 'client_phone', FILTER_SANITIZE_SPECIAL_CHARS);
+    $formData['event_name'] = filter_input(INPUT_POST, 'event_name', FILTER_SANITIZE_SPECIAL_CHARS);
+    $formData['event_date'] = filter_input(INPUT_POST, 'event_date', FILTER_SANITIZE_SPECIAL_CHARS);
+    $formData['event_location'] = filter_input(INPUT_POST, 'event_location', FILTER_SANITIZE_SPECIAL_CHARS);
+    $formData['booth_size'] = filter_input(INPUT_POST, 'booth_size', FILTER_SANITIZE_SPECIAL_CHARS);
+    $formData['booth_number'] = filter_input(INPUT_POST, 'booth_number', FILTER_SANITIZE_SPECIAL_CHARS);
+    $formData['booth_type'] = filter_input(INPUT_POST, 'booth_type', FILTER_SANITIZE_SPECIAL_CHARS);
+    $formData['design_requirements'] = filter_input(INPUT_POST, 'design_requirements', FILTER_SANITIZE_SPECIAL_CHARS, FILTER_REQUIRE_ARRAY) ?? [];
+    $formData['delivery_priority'] = filter_input(INPUT_POST, 'delivery_priority', FILTER_SANITIZE_SPECIAL_CHARS);
+    $formData['special_requests'] = filter_input(INPUT_POST, 'special_requests', FILTER_SANITIZE_SPECIAL_CHARS);
+    $formData['budget_range'] = filter_input(INPUT_POST, 'budget_range', FILTER_SANITIZE_SPECIAL_CHARS);
     
     // Validation
     if (empty($formData['requirement_type'])) {
@@ -394,25 +394,25 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                                     <div class="row">
                                         <div class="col-md-6">
                                             <div class="form-check mb-2">
-                                                <input class="form-check-input" type="checkbox" name="design_requirements[]" value="custom_graphics" id="design_graphics">
+                                                <input class="form-check-input" type="checkbox" name="design_requirements[]" value="custom_graphics" id="design_graphics" <?php echo in_array('custom_graphics', $formData['design_requirements']) ? 'checked' : ''; ?>>
                                                 <label class="form-check-label" for="design_graphics">
                                                     Custom Graphics
                                                 </label>
                                             </div>
                                             <div class="form-check mb-2">
-                                                <input class="form-check-input" type="checkbox" name="design_requirements[]" value="lighting" id="design_lighting">
+                                                <input class="form-check-input" type="checkbox" name="design_requirements[]" value="lighting" id="design_lighting" <?php echo in_array('lighting', $formData['design_requirements']) ? 'checked' : ''; ?>>
                                                 <label class="form-check-label" for="design_lighting">
                                                     Special Lighting
                                                 </label>
                                             </div>
                                             <div class="form-check mb-2">
-                                                <input class="form-check-input" type="checkbox" name="design_requirements[]" value="flooring" id="design_flooring">
+                                                <input class="form-check-input" type="checkbox" name="design_requirements[]" value="flooring" id="design_flooring" <?php echo in_array('flooring', $formData['design_requirements']) ? 'checked' : ''; ?>>
                                                 <label class="form-check-label" for="design_flooring">
                                                     Custom Flooring
                                                 </label>
                                             </div>
                                             <div class="form-check mb-2">
-                                                <input class="form-check-input" type="checkbox" name="design_requirements[]" value="furniture" id="design_furniture">
+                                                <input class="form-check-input" type="checkbox" name="design_requirements[]" value="furniture" id="design_furniture" <?php echo in_array('furniture', $formData['design_requirements']) ? 'checked' : ''; ?>>
                                                 <label class="form-check-label" for="design_furniture">
                                                     Furniture & Seating
                                                 </label>
@@ -420,25 +420,25 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                                         </div>
                                         <div class="col-md-6">
                                             <div class="form-check mb-2">
-                                                <input class="form-check-input" type="checkbox" name="design_requirements[]" value="av_equipment" id="design_av">
+                                                <input class="form-check-input" type="checkbox" name="design_requirements[]" value="av_equipment" id="design_av" <?php echo in_array('av_equipment', $formData['design_requirements']) ? 'checked' : ''; ?>>
                                                 <label class="form-check-label" for="design_av">
                                                     A/V Equipment
                                                 </label>
                                             </div>
                                             <div class="form-check mb-2">
-                                                <input class="form-check-input" type="checkbox" name="design_requirements[]" value="storage" id="design_storage">
+                                                <input class="form-check-input" type="checkbox" name="design_requirements[]" value="storage" id="design_storage" <?php echo in_array('storage', $formData['design_requirements']) ? 'checked' : ''; ?>>
                                                 <label class="form-check-label" for="design_storage">
                                                     Storage Solutions
                                                 </label>
                                             </div>
                                             <div class="form-check mb-2">
-                                                <input class="form-check-input" type="checkbox" name="design_requirements[]" value="displays" id="design_displays">
+                                                <input class="form-check-input" type="checkbox" name="design_requirements[]" value="displays" id="design_displays" <?php echo in_array('displays', $formData['design_requirements']) ? 'checked' : ''; ?>>
                                                 <label class="form-check-label" for="design_displays">
                                                     Product Displays
                                                 </label>
                                             </div>
                                             <div class="form-check mb-2">
-                                                <input class="form-check-input" type="checkbox" name="design_requirements[]" value="signage" id="design_signage">
+                                                <input class="form-check-input" type="checkbox" name="design_requirements[]" value="signage" id="design_signage" <?php echo in_array('signage', $formData['design_requirements']) ? 'checked' : ''; ?>>
                                                 <label class="form-check-label" for="design_signage">
                                                     Digital Signage
                                                 </label>
@@ -545,17 +545,17 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                 
                 // Format as (XXX) XXX-XXXX
                 let formatted = '';
-                if (value.length > 0) {
-                    formatted = value.substring(0, 3);
-                    if (value.length >= 4) {
-                        formatted = '(' + formatted + ') ' + value.substring(3, 6);
-                        if (value.length >= 7) {
-                            formatted += '-' + value.substring(6, 10);
-                        }
+                if (value.length >= 1) {
+                    if (value.length <= 3) {
+                        formatted = value;
+                    } else if (value.length <= 6) {
+                        formatted = '(' + value.substring(0, 3) + ') ' + value.substring(3);
+                    } else {
+                        formatted = '(' + value.substring(0, 3) + ') ' + value.substring(3, 6) + '-' + value.substring(6);
                     }
                 }
                 
-                e.target.value = formatted || value;
+                e.target.value = formatted;
             });
             
             // Event date validation (prevent past dates)
