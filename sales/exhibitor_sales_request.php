@@ -27,20 +27,20 @@ $formData = [
 // Server-side validation and processing
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     // Sanitize and validate inputs
-    $formData['requirement_type'] = filter_input(INPUT_POST, 'requirement_type', FILTER_SANITIZE_STRING);
-    $formData['client_name'] = filter_input(INPUT_POST, 'client_name', FILTER_SANITIZE_STRING);
+    $formData['requirement_type'] = filter_input(INPUT_POST, 'requirement_type', FILTER_SANITIZE_FULL_SPECIAL_CHARS);
+    $formData['client_name'] = filter_input(INPUT_POST, 'client_name', FILTER_SANITIZE_FULL_SPECIAL_CHARS);
     $formData['client_email'] = filter_input(INPUT_POST, 'client_email', FILTER_SANITIZE_EMAIL);
-    $formData['client_phone'] = filter_input(INPUT_POST, 'client_phone', FILTER_SANITIZE_STRING);
-    $formData['event_name'] = filter_input(INPUT_POST, 'event_name', FILTER_SANITIZE_STRING);
-    $formData['event_date'] = filter_input(INPUT_POST, 'event_date', FILTER_SANITIZE_STRING);
-    $formData['event_location'] = filter_input(INPUT_POST, 'event_location', FILTER_SANITIZE_STRING);
-    $formData['booth_size'] = filter_input(INPUT_POST, 'booth_size', FILTER_SANITIZE_STRING);
-    $formData['booth_number'] = filter_input(INPUT_POST, 'booth_number', FILTER_SANITIZE_STRING);
-    $formData['booth_type'] = filter_input(INPUT_POST, 'booth_type', FILTER_SANITIZE_STRING);
-    $formData['design_requirements'] = filter_input(INPUT_POST, 'design_requirements', FILTER_SANITIZE_STRING, FILTER_REQUIRE_ARRAY) ?? [];
-    $formData['delivery_priority'] = filter_input(INPUT_POST, 'delivery_priority', FILTER_SANITIZE_STRING);
-    $formData['special_requests'] = filter_input(INPUT_POST, 'special_requests', FILTER_SANITIZE_STRING);
-    $formData['budget_range'] = filter_input(INPUT_POST, 'budget_range', FILTER_SANITIZE_STRING);
+    $formData['client_phone'] = filter_input(INPUT_POST, 'client_phone', FILTER_SANITIZE_FULL_SPECIAL_CHARS);
+    $formData['event_name'] = filter_input(INPUT_POST, 'event_name', FILTER_SANITIZE_FULL_SPECIAL_CHARS);
+    $formData['event_date'] = filter_input(INPUT_POST, 'event_date', FILTER_SANITIZE_FULL_SPECIAL_CHARS);
+    $formData['event_location'] = filter_input(INPUT_POST, 'event_location', FILTER_SANITIZE_FULL_SPECIAL_CHARS);
+    $formData['booth_size'] = filter_input(INPUT_POST, 'booth_size', FILTER_SANITIZE_FULL_SPECIAL_CHARS);
+    $formData['booth_number'] = filter_input(INPUT_POST, 'booth_number', FILTER_SANITIZE_FULL_SPECIAL_CHARS);
+    $formData['booth_type'] = filter_input(INPUT_POST, 'booth_type', FILTER_SANITIZE_FULL_SPECIAL_CHARS);
+    $formData['design_requirements'] = filter_input(INPUT_POST, 'design_requirements', FILTER_SANITIZE_FULL_SPECIAL_CHARS, FILTER_REQUIRE_ARRAY) ?? [];
+    $formData['delivery_priority'] = filter_input(INPUT_POST, 'delivery_priority', FILTER_SANITIZE_FULL_SPECIAL_CHARS);
+    $formData['special_requests'] = filter_input(INPUT_POST, 'special_requests', FILTER_SANITIZE_FULL_SPECIAL_CHARS);
+    $formData['budget_range'] = filter_input(INPUT_POST, 'budget_range', FILTER_SANITIZE_FULL_SPECIAL_CHARS);
     
     // Validation
     if (empty($formData['requirement_type'])) {
@@ -88,7 +88,9 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         $success = true;
         
         // Reset form data after successful submission
-        $formData = array_map(function() { return ''; }, $formData);
+        foreach ($formData as $key => $value) {
+            $formData[$key] = is_array($value) ? [] : '';
+        }
     }
 }
 ?>
@@ -531,14 +533,29 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                 form.classList.add('was-validated');
             }, false);
             
-            // Phone number formatting
+            // Phone number formatting with proper display format
             const phoneInput = document.getElementById('client_phone');
             phoneInput.addEventListener('input', function(e) {
                 let value = e.target.value.replace(/\D/g, '');
+                
+                // Limit to 10 digits
                 if (value.length > 10) {
                     value = value.substring(0, 10);
                 }
-                e.target.value = value;
+                
+                // Format as (XXX) XXX-XXXX
+                let formatted = '';
+                if (value.length > 0) {
+                    formatted = value.substring(0, 3);
+                    if (value.length >= 4) {
+                        formatted = '(' + formatted + ') ' + value.substring(3, 6);
+                        if (value.length >= 7) {
+                            formatted += '-' + value.substring(6, 10);
+                        }
+                    }
+                }
+                
+                e.target.value = formatted || value;
             });
             
             // Event date validation (prevent past dates)
