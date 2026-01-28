@@ -1,0 +1,47 @@
+# Ignore uploaded files
+uploads/*
+!uploads/.gitkeep
+
+# Ignore system files
+.DS_Store
+Thumbs.db
+
+# Ignore IDE files
+.vscode/
+.idea/
+*.sublime-project
+*.sublime-workspace
+
+# Ignore log files
+*.log
+error_log
+
+# Ignore temporary files
+*.tmp
+*.temp
+~*
+
+# Ignore sensitive configuration (if using environment-specific configs)
+config/local.php
+.env
+
+# Ignore cache files
+cache/
+*.cache
+
+# Ignore backup files
+*.bak
+*.backup
+*.sql.backup
+
+# Ignore composer dependencies (if using Composer)
+vendor/
+composer.lock
+
+# Ignore node modules (if using npm)
+node_modules/
+package-lock.json
+
+# Keep uploads directory structure
+!uploads/.gitkeep
+test_form_preview.html
