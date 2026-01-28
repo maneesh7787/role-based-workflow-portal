@@ -44,3 +44,4 @@ package-lock.json
 
 # Keep uploads directory structure
 !uploads/.gitkeep
+test_form_preview.html
